@@ -1,2 +1,5 @@
-# ring-network
-Comp 212 Assignment 1, simulation of LCR on a ring network.
+# LCR on a ring of rings
+
+## Compiling and running
+
+## Completeness and complexity
