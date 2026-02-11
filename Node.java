@@ -4,6 +4,8 @@ public class Node {
 	private int wakeRound;
 	private String status;
 
+	public boolean terminated;
+
 	// LCR Algorithm State
 	private int sendID;
 
@@ -16,6 +18,7 @@ public class Node {
 		this.status = "unknown";
 	}
 
+	// FIXME: Function is temporary, must replace with actual phases of rounds
 	public void processRound(int inID, int round, boolean elected) {
 		if (wakeRound > round) {
 			return;
