@@ -4,13 +4,9 @@ public class Node {
 	private int wakeRound;
 	private String status;
 
-	public boolean terminated;
-
-	// LCR Algorithm State
-	private int sendID;
-
 	// Communication Links
-	private Node nextNeighbor;
+	private Node nextNeighbour;
+	private int sendID;
 
 	public Node(int id, int wakeRound) {
 		this.myID = this.sendID = id;
@@ -18,16 +14,23 @@ public class Node {
 		this.status = "unknown";
 	}
 
-	// FIXME: Function is temporary, must replace with actual phases of rounds
-	public void processRound(int inID, int round, boolean elected) {
+	public void giveNeighbour(Node node) {
+		this.nextNeighbour = node;
+	}
+
+	public Message processMessage(int round, Message message) {
 		if (wakeRound > round) {
-			return;
+			return new Message(-1, "unknown");
 		}
 
-		if (inID > this.myID) {
-			this.sendID = inID;
-		} else if (inID == this.myID) {
+		if (message.content > this.sendID) {
+			this.sendID = message.content;
+		} else if (message.content == this.myID) {
 			this.status = "leader";
-		} // else discard the ID
+		} else if (message.elected == "leader") {
+			this.status = "follower";
+		}
+
+		return new Message(this.sendID, this.status);
 	}
 }
