@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 
 public class Scheduler {
+	// constants for testing
 	private final int NUM_NODES = 12;
 	private final int MAX_WAKE_ROUNDS = 12;
 
@@ -21,6 +22,11 @@ public class Scheduler {
 		this.allNodes = new ArrayList<>();
 		this.ids = new ArrayList<>();
 		this.wakeRounds = new ArrayList<>();
+
+		generateIds();
+		generateWakeRounds();
+		generateNodes();
+		giveNeighbours();
 
 		this.inMessages = new HashMap<>();
 		this.outMessages = new HashMap<>();
@@ -48,11 +54,22 @@ public class Scheduler {
 		}
 	}
 
+	// uses the randomly generated ids and wake rounds
 	public void generateNodes() {
 		for (int i = 0; i < NUM_NODES; i++) {
 			this.allNodes.add(new Node(
 					this.ids.get(i),
 					this.wakeRounds.get(i)));
+		}
+	}
+
+	public void giveNeighbours() {
+		for (int i = 0; i < NUM_NODES; i++) {
+			if (i != NUM_NODES) {
+				this.allNodes.get(i).giveNeighbour(this.allNodes.get(i + 1));
+			} else {
+				this.allNodes.get(i).giveNeighbour(this.allNodes.get(0));
+			}
 		}
 	}
 
