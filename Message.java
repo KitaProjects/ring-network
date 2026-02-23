@@ -1,8 +1,8 @@
 public class Message {
 	public int content;
-	public String elected;
+	public boolean elected;
 
-	public Message(int content, String elected) {
+	public Message(int content, boolean elected) {
 		this.content = content;
 		this.elected = elected;
 	}

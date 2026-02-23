@@ -4,9 +4,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import java.util.concurrent.TimeUnit;
+
 public class Scheduler {
 	// constants for testing
 	private final int NUM_NODES = 12;
+	private final int RAND_VARIANCE = 5;
 	private final int MAX_WAKE_ROUNDS = 12;
 
 	private List<Node> allNodes;
@@ -23,10 +26,7 @@ public class Scheduler {
 		this.ids = new ArrayList<>();
 		this.wakeRounds = new ArrayList<>();
 
-		generateIds();
-		generateWakeRounds();
-		generateNodes();
-		giveNeighbours();
+		start();
 
 		this.inMessages = new HashMap<>();
 		this.outMessages = new HashMap<>();
@@ -36,9 +36,11 @@ public class Scheduler {
 
 	// shuffled array of unique ids
 	private void generateIds() {
+		System.out.println("[INFO] Random ID variance is set to " + RAND_VARIANCE);
+		System.out.println("[WORK] Generating random IDs");
 		int randomInt = 0;
 		for (int i = 0; i < NUM_NODES; i++) {
-			randomInt += (int) (Math.random() * 5) + 1;
+			randomInt += (int) (Math.random() * RAND_VARIANCE) + 1;
 			this.ids.add(randomInt);
 		}
 
@@ -47,6 +49,7 @@ public class Scheduler {
 
 	// array of random wakeRounds
 	private void generateWakeRounds() {
+		System.out.println("[WORK] " + MAX_WAKE_ROUNDS + " maximum number of wake rounds being assigned...");
 		int randomInt = 0;
 		for (int i = 0; i < NUM_NODES; i++) {
 			randomInt = (int) (Math.random() * MAX_WAKE_ROUNDS);
@@ -56,6 +59,7 @@ public class Scheduler {
 
 	// uses the randomly generated ids and wake rounds
 	public void generateNodes() {
+		System.out.println("[WORK] " + NUM_NODES + " nodes being generated...");
 		for (int i = 0; i < NUM_NODES; i++) {
 			this.allNodes.add(new Node(
 					this.ids.get(i),
@@ -65,7 +69,7 @@ public class Scheduler {
 
 	public void giveNeighbours() {
 		for (int i = 0; i < NUM_NODES; i++) {
-			if (i != NUM_NODES) {
+			if (i < NUM_NODES - 1) {
 				this.allNodes.get(i).giveNeighbour(this.allNodes.get(i + 1));
 			} else {
 				this.allNodes.get(i).giveNeighbour(this.allNodes.get(0));
@@ -73,8 +77,26 @@ public class Scheduler {
 		}
 	}
 
+	public void printRing() {
+		for (Node n : allNodes) {
+			System.out.println("Node " + n.getId() + " -> Node " + n.getNextNeighbour().getId());
+		}
+	}
+
 	public void start() {
-		System.out.println("==GENERATING RING NETWORK==");
-		System.out.println(NUM_NODES + " nodes being generated...");
+		System.out.println("[INIT] Generating ring network");
+
+		generateIds();
+		generateWakeRounds();
+		generateNodes();
+		giveNeighbours();
+
+		System.out.println("[DONE] Ring network generated");
+
+		// printRing();
+	}
+
+	public static void main(String[] args) {
+		Scheduler scheduler = new Scheduler();
 	}
 }
