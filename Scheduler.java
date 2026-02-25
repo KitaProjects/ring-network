@@ -1,8 +1,4 @@
-import java.util.Collections;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class Scheduler {
 	// constants for testing
@@ -26,11 +22,18 @@ public class Scheduler {
 
 		start();
 
+		// dummy incoming messages
 		this.inMessages = new HashMap<>();
-		this.outMessages = new HashMap<>();
+		for (Node n : allNodes) {
+			this.inMessages.put(n, null);
+		}
 
 		this.currentRound = 1;
 	}
+
+	// #############################################
+	// #===========NODE GENERATION LOGIC===========#
+	// #############################################
 
 	// shuffled array of unique ids
 	private void generateIds() {
@@ -93,6 +96,54 @@ public class Scheduler {
 		System.out.println("[DONE] Ring network generated");
 
 		// printRing();
+	}
+
+	// #############################################
+	// #=========MESSAGE GENERATION LOGIC==========#
+	// #############################################
+
+	public void generateMessages() {
+		for (int i = 0; i < NUM_NODES; i++) {
+			this.allNodes.get(i).processMessage(
+					this.currentRound,
+					this.outMessages.get(i));
+		}
+	}
+
+	public void simulateLCR() {
+		int totalMessages = 0;
+		boolean allTerminated = false;
+
+		while (!allTerminated) {
+			System.out.println("[INFO] Round " + this.currentRound + ":");
+			this.outMessages = new HashMap<>();
+
+			// create new out messages
+			for (Node n : allNodes) {
+				if (n.isTerminated())
+					continue;
+				if (n.getWakeRound() > this.currentRound)
+					continue;
+
+				Message inMessage = this.inMessages.get(n);
+				Message outMessage = n.processMessage(
+						this.currentRound,
+						inMessage);
+
+				if (outMessage != null) {
+					outMessages.put(n, outMessage);
+					totalMessages++;
+				}
+			}
+
+			// deliver messages to neighbours
+			for (Node n : allNodes) {
+				Message inMessage = this.outMessages.get(n);
+				Message outMessage = n.getNextNeighbour().processMessage(
+						this.currentRound,
+						inMessage);
+			}
+		}
 	}
 
 	public static void main(String[] args) {
