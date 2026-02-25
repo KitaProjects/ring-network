@@ -4,8 +4,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import java.util.concurrent.TimeUnit;
-
 public class Scheduler {
 	// constants for testing
 	private final int NUM_NODES = 12;
@@ -77,6 +75,7 @@ public class Scheduler {
 		}
 	}
 
+	// DEBUG: prints all nodes and their neighbours
 	public void printRing() {
 		for (Node n : allNodes) {
 			System.out.println("Node " + n.getId() + " -> Node " + n.getNextNeighbour().getId());
