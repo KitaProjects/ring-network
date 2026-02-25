@@ -28,11 +28,20 @@ public class Node {
 		return this.myID;
 	}
 
+	public String getStatus() {
+		return this.status;
+	}
+
 	public Message processMessage(int round, Message message) {
 		// returns null if asleep
-		if (wakeRound > round) {
+		if (wakeRound > round)
 			return null;
-		}
+		if (this.terminate)
+			return null;
+
+		//
+		if (message == null)
+			return new Message(sendID, false);
 
 		// if my ID has made it back to me I must be the leader
 		if (message.content == this.myID) {
@@ -48,11 +57,13 @@ public class Node {
 			return new Message(message.content, true);
 		}
 
-		// handle when another ID is bigger than mine
+		// bigger ID so send
 		if (message.content > this.sendID) {
 			this.sendID = message.content;
+			return new Message(this.sendID, false);
 		}
 
-		return new Message(this.sendID, false);
+		// smaller ID so do nothing
+		return null;
 	}
 }
