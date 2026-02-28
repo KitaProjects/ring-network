@@ -98,7 +98,7 @@ public class Scheduler {
 
 		System.out.println("[DONE] Ring network generated");
 
-		// printRing();
+		printRing();
 	}
 
 	// #############################################
@@ -173,7 +173,31 @@ public class Scheduler {
 		System.out.println("[INFO] " + totalMessages + " messages");
 	}
 
+	// #############################################
+	// #===============MAIN AND HELP===============#
+	// #############################################
+
+	public Node getElectedLeader() {
+		Node leader = null;
+		for (Node n : allNodes) {
+			if (n.getStatus().equals("leader")) {
+				if (leader != null) {
+					System.err.println("[WARN] Multiple leaders elected!");
+					return null;
+				}
+
+				leader = n;
+			}
+		}
+
+		return leader;
+	}
+
 	public static void main(String[] args) {
 		Scheduler scheduler = new Scheduler();
+
+		Node leaderNode = scheduler.getElectedLeader();
+
+		System.out.println("[INFO] leader ID: " + leaderNode.getId());
 	}
 }
