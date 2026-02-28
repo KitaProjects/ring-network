@@ -11,6 +11,7 @@ public class Scheduler {
 	private ArrayList<Integer> wakeRounds;
 
 	private Map<Node, Message> inMessages;
+	private Map<Node, Message> nextInMessages;
 	private Map<Node, Message> outMessages;
 
 	private int currentRound;
@@ -29,6 +30,8 @@ public class Scheduler {
 		}
 
 		this.currentRound = 1;
+
+		simulateLCR();
 	}
 
 	// #############################################
@@ -115,10 +118,8 @@ public class Scheduler {
 		boolean allTerminated = false;
 
 		while (!allTerminated) {
-			System.out.println("[INFO] Round " + this.currentRound + ":");
-			this.outMessages = new HashMap<>();
-
 			// create new out messages
+			this.outMessages = new HashMap<>();
 			for (Node n : allNodes) {
 				if (n.isTerminated())
 					continue;
@@ -136,14 +137,40 @@ public class Scheduler {
 				}
 			}
 
-			// deliver messages to neighbours
+			// store messages to be sent to neighbours
+			this.nextInMessages = new HashMap<>();
 			for (Node n : allNodes) {
-				Message inMessage = this.outMessages.get(n);
-				Message outMessage = n.getNextNeighbour().processMessage(
-						this.currentRound,
-						inMessage);
+				this.nextInMessages.put(n, null);
 			}
+
+			for (Map.Entry<Node, Message> entry : outMessages.entrySet()) {
+				Node sender = entry.getKey();
+				Node receiver = sender.getNextNeighbour();
+				Message outMessage = entry.getValue();
+
+				if (receiver.getWakeRound() < this.currentRound) {
+					nextInMessages.put(receiver, outMessage);
+				}
+			}
+
+			this.currentRound++;
+			inMessages = nextInMessages;
+
+			// check to see if all nodes are terminated or not
+			allTerminated = true;
+			for (Node n : allNodes) {
+				if (!n.isTerminated()) {
+					allTerminated = false;
+					break;
+				}
+			}
+
 		}
+
+		// summary
+		System.out.println("[DONE] Simulation finished");
+		System.out.println("[INFO] " + (currentRound) + " rounds");
+		System.out.println("[INFO] " + totalMessages + " messages");
 	}
 
 	public static void main(String[] args) {
