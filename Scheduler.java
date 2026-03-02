@@ -105,14 +105,6 @@ public class Scheduler {
 	// #=========MESSAGE GENERATION LOGIC==========#
 	// #############################################
 
-	public void generateMessages() {
-		for (int i = 0; i < NUM_NODES; i++) {
-			this.allNodes.get(i).processMessage(
-					this.currentRound,
-					this.outMessages.get(i));
-		}
-	}
-
 	public void simulateLCR() {
 		System.out.println("[WORK] Simulating generated ring network...");
 
