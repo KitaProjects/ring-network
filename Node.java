@@ -16,16 +16,20 @@ public class Node {
 		this.terminate = false;
 	}
 
+	public void giveId(int id) {
+		this.myID = id;
+	}
+
+	public int getId() {
+		return this.myID;
+	}
+
 	public void giveNeighbour(Node node) {
 		this.nextNeighbour = node;
 	}
 
 	public Node getNextNeighbour() {
 		return this.nextNeighbour;
-	}
-
-	public int getId() {
-		return this.myID;
 	}
 
 	public int getWakeRound() {

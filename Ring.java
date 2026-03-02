@@ -1,0 +1,62 @@
+import java.util.*;
+
+public class Ring {
+	private List<Node> allNodes;
+
+	private Map<Node, Message> inMessages;
+	private Map<Node, Message> nextInMessages;
+	private Map<Node, Message> outMessages;
+
+	private int totalMessages;
+	private boolean allTerminated;
+
+	public Ring(List<Node> nodes) {
+		this.allNodes = new ArrayList<>(nodes);
+		this.totalMessages = 0;
+		this.allTerminated = false;
+
+		// setup neighbours clockwise
+		for (int i = 0; i < Scheduler.NUM_NODES; i++) {
+			Node nextNode = nodes.get((i + 1) % nodes.size());
+
+			nodes.get(i).giveNeighbour(nextNode);
+		}
+
+		// setup messages
+		this.inMessages = new HashMap<>();
+		this.nextInMessages = new HashMap<>();
+		for (Node n : nodes) {
+			this.inMessages.put(n, null);
+			this.nextInMessages.put(n, null);
+		}
+	}
+
+	public boolean processRound(int currentRound) {
+		if (allTerminated) {
+			return true;
+		}
+
+		for (Node n : this.allNodes) {
+			nextInMessages.put(n, null);
+		}
+
+		for (Node n : this.allNodes) {
+			if (n.isTerminated()) {
+				continue;
+			}
+
+			if (n.getWakeRound() > currentRound) {
+				continue;
+			}
+
+			Message inMessage = this.inMessages.get(n);
+
+			Message outMessage = n.processMessage(currentRound, inMessage);
+
+			if (outMessage != null) {
+				this.outMessages.put(n, outMessage);
+				totalMessages++;
+			}
+		}
+	}
+}

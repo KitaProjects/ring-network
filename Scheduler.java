@@ -2,17 +2,12 @@ import java.util.*;
 
 public class Scheduler {
 	// constants for testing
-	private final int NUM_NODES = 12;
+	public static final int NUM_NODES = 12;
 	private final int RAND_VARIANCE = 5;
 	private final int MAX_WAKE_ROUNDS = 12;
 
-	private List<Node> allNodes;
 	private ArrayList<Integer> ids;
 	private ArrayList<Integer> wakeRounds;
-
-	private Map<Node, Message> inMessages;
-	private Map<Node, Message> nextInMessages;
-	private Map<Node, Message> outMessages;
 
 	private int currentRound;
 
@@ -107,9 +102,6 @@ public class Scheduler {
 
 	public void simulateLCR() {
 		System.out.println("[WORK] Simulating generated ring network...");
-
-		int totalMessages = 0;
-		boolean allTerminated = false;
 
 		while (!allTerminated) {
 			// create new out messages
