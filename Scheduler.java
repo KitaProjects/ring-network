@@ -2,9 +2,9 @@ import java.util.*;
 
 public class Scheduler {
 	// constants for testing
-	public static final int NUM_NODES = 12;
-	private final int RAND_VARIANCE = 5;
-	private final int MAX_WAKE_ROUNDS = 12;
+	public static final int NUM_NODES_BASIC = 12;
+	private final int RAND_VARIANCE_BASIC = 5;
+	private final int MAX_WAKE_ROUNDS_BASIC = 12;
 
 	private List<Node> allNodes;
 	private ArrayList<Integer> ids;
@@ -30,11 +30,11 @@ public class Scheduler {
 
 	// shuffled array of unique ids
 	private void generateIds() {
-		System.out.println("[INFO] Random ID variance is set to " + RAND_VARIANCE);
+		System.out.println("[INFO] Random ID variance is set to " + RAND_VARIANCE_BASIC);
 		System.out.println("[WORK] Generating random IDs...");
 		int randomInt = 0;
-		for (int i = 0; i < NUM_NODES; i++) {
-			randomInt += (int) (Math.random() * RAND_VARIANCE) + 1;
+		for (int i = 0; i < NUM_NODES_BASIC; i++) {
+			randomInt += (int) (Math.random() * RAND_VARIANCE_BASIC) + 1;
 			this.ids.add(randomInt);
 		}
 
@@ -43,18 +43,19 @@ public class Scheduler {
 
 	// array of random wakeRounds
 	private void generateWakeRounds() {
-		System.out.println("[WORK] " + MAX_WAKE_ROUNDS + " maximum number of wake rounds being assigned...");
+		System.out.println(
+				"[WORK] " + MAX_WAKE_ROUNDS_BASIC + " maximum number of wake rounds being assigned...");
 		int randomInt = 0;
-		for (int i = 0; i < NUM_NODES; i++) {
-			randomInt = (int) (Math.random() * MAX_WAKE_ROUNDS);
+		for (int i = 0; i < NUM_NODES_BASIC; i++) {
+			randomInt = (int) (Math.random() * MAX_WAKE_ROUNDS_BASIC);
 			this.wakeRounds.add(randomInt);
 		}
 	}
 
 	// uses the randomly generated ids and wake rounds
 	public void generateNodes() {
-		System.out.println("[WORK] " + NUM_NODES + " nodes being generated...");
-		for (int i = 0; i < NUM_NODES; i++) {
+		System.out.println("[WORK] " + NUM_NODES_BASIC + " nodes being generated...");
+		for (int i = 0; i < NUM_NODES_BASIC; i++) {
 			this.allNodes.add(new Node(
 					this.ids.get(i),
 					this.wakeRounds.get(i)));
@@ -62,8 +63,8 @@ public class Scheduler {
 	}
 
 	public void giveNeighbours() {
-		for (int i = 0; i < NUM_NODES; i++) {
-			if (i < NUM_NODES - 1) {
+		for (int i = 0; i < NUM_NODES_BASIC; i++) {
+			if (i < NUM_NODES_BASIC - 1) {
 				this.allNodes.get(i).giveNeighbour(this.allNodes.get(i + 1));
 			} else {
 				this.allNodes.get(i).giveNeighbour(this.allNodes.get(0));

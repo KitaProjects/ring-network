@@ -1,27 +1,27 @@
 public class Node {
 	// identity
-	private int myID;
+	private int myId;
 	private int wakeRound;
 	private String status;
 	private boolean terminate;
 
 	// communication links
 	private Node nextNeighbour;
-	private int sendID;
+	private int sendId;
 
 	public Node(int id, int wakeRound) {
-		this.myID = this.sendID = id;
+		this.myId = this.sendId = id;
 		this.wakeRound = wakeRound;
 		this.status = "unknown";
 		this.terminate = false;
 	}
 
 	public void giveId(int id) {
-		this.myID = id;
+		this.myId = this.sendId = id;
 	}
 
 	public int getId() {
-		return this.myID;
+		return this.myId;
 	}
 
 	public void giveNeighbour(Node node) {
@@ -46,13 +46,13 @@ public class Node {
 
 	public Message processMessage(int round, Message message) {
 		if (message == null)
-			return new Message(sendID, false);
+			return new Message(sendId, false);
 
 		// if my ID has made it back to me I must be the leader
-		if (message.content == this.myID) {
+		if (message.content == this.myId) {
 			this.status = "leader";
 			this.terminate = true;
-			return new Message(this.myID, true);
+			return new Message(this.myId, true);
 		}
 
 		// if someone is elected who is not me, I must be a follower
@@ -63,9 +63,9 @@ public class Node {
 		}
 
 		// bigger ID so send
-		if (message.content > this.sendID) {
-			this.sendID = message.content;
-			return new Message(this.sendID, false);
+		if (message.content > this.sendId) {
+			this.sendId = message.content;
+			return new Message(this.sendId, false);
 		}
 
 		// smaller ID so do nothing
