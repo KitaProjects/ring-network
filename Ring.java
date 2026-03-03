@@ -5,7 +5,6 @@ public class Ring {
 
 	private Map<Node, Message> inMessages;
 	private Map<Node, Message> nextInMessages;
-	private Map<Node, Message> outMessages;
 
 	private int totalMessages;
 	private boolean allTerminated;
@@ -25,19 +24,21 @@ public class Ring {
 		// setup messages
 		this.inMessages = new HashMap<>();
 		this.nextInMessages = new HashMap<>();
-		for (Node n : nodes) {
+		for (Node n : this.allNodes) {
 			this.inMessages.put(n, null);
 			this.nextInMessages.put(n, null);
 		}
 	}
 
 	public boolean processRound(int currentRound) {
+		Map<Node, Message> outMessages = new HashMap();
+
 		if (this.allTerminated) {
 			return true;
 		}
 
 		for (Node n : this.allNodes) {
-			nextInMessages.put(n, null);
+			this.nextInMessages.put(n, null);
 		}
 
 		for (Node n : this.allNodes) {
@@ -50,11 +51,10 @@ public class Ring {
 			}
 
 			Message inMessage = this.inMessages.get(n);
-
 			Message outMessage = n.processMessage(currentRound, inMessage);
 
 			if (outMessage != null) {
-				this.outMessages.put(n, outMessage);
+				outMessages.put(n, outMessage);
 				totalMessages++;
 			}
 		}
@@ -65,7 +65,7 @@ public class Ring {
 			Message outMessage = e.getValue();
 
 			// TODO: Check if redundant or not
-			if (receiver.getWakeRound() < currentRound) {
+			if (receiver.getWakeRound() <= currentRound) {
 				this.nextInMessages.put(receiver, outMessage);
 			}
 		}
