@@ -6,6 +6,7 @@ public class Scheduler {
 	private final int RAND_VARIANCE = 5;
 	private final int MAX_WAKE_ROUNDS = 12;
 
+	private List<Node> allNodes;
 	private ArrayList<Integer> ids;
 	private ArrayList<Integer> wakeRounds;
 
@@ -17,12 +18,6 @@ public class Scheduler {
 		this.wakeRounds = new ArrayList<>();
 
 		start();
-
-		// dummy incoming messages
-		this.inMessages = new HashMap<>();
-		for (Node n : allNodes) {
-			this.inMessages.put(n, null);
-		}
 
 		this.currentRound = 1;
 
@@ -103,90 +98,15 @@ public class Scheduler {
 	public void simulateLCR() {
 		System.out.println("[WORK] Simulating generated ring network...");
 
-		while (!allTerminated) {
-			// create new out messages
-			this.outMessages = new HashMap<>();
-			for (Node n : this.allNodes) {
-				if (n.isTerminated())
-					continue;
-				if (n.getWakeRound() > this.currentRound)
-					continue;
-
-				Message inMessage = this.inMessages.get(n);
-				Message outMessage = n.processMessage(
-						this.currentRound,
-						inMessage);
-
-				if (outMessage != null) {
-					outMessages.put(n, outMessage);
-					totalMessages++;
-				}
-			}
-
-			// store messages to be sent to neighbours
-			this.nextInMessages = new HashMap<>();
-			for (Node n : this.allNodes) {
-				this.nextInMessages.put(n, null);
-			}
-
-			for (Map.Entry<Node, Message> entry : outMessages.entrySet()) {
-				Node sender = entry.getKey();
-				Node receiver = sender.getNextNeighbour();
-				Message outMessage = entry.getValue();
-
-				if (receiver.getWakeRound() < this.currentRound) {
-					nextInMessages.put(receiver, outMessage);
-				}
-			}
-
-			// perform message updates
-			this.currentRound++;
-			inMessages = nextInMessages;
-
-			// check to see if all nodes are terminated or not
-			allTerminated = true;
-			for (Node n : this.allNodes) {
-				if (!n.isTerminated()) {
-					allTerminated = false;
-					break;
-				}
-			}
-
-		}
-
 		// summary
 		System.out.println("[DONE] Simulation finished!");
 		System.out.println("\nSUMMARY");
 		System.out.println("-------");
-		System.out.println("[INFO] Rounds: " + (currentRound));
-		System.out.println("[INFO] Messages: " + totalMessages);
 	}
 
 	// #############################################
-	// #===============MAIN AND HELP===============#
-	// #############################################
-
-	public Node getElectedLeader() {
-		Node leader = null;
-		for (Node n : this.allNodes) {
-			if (n.getStatus().equals("leader")) {
-				if (leader != null) {
-					System.err.println("[WARN] Multiple leaders elected!");
-					return null;
-				}
-
-				leader = n;
-			}
-		}
-
-		return leader;
-	}
 
 	public static void main(String[] args) {
 		Scheduler scheduler = new Scheduler();
-
-		Node leaderNode = scheduler.getElectedLeader();
-
-		System.out.println("[INFO] Leader ID: " + leaderNode.getId());
 	}
 }

@@ -32,7 +32,7 @@ public class Ring {
 	}
 
 	public boolean processRound(int currentRound) {
-		if (allTerminated) {
+		if (this.allTerminated) {
 			return true;
 		}
 
@@ -58,5 +58,46 @@ public class Ring {
 				totalMessages++;
 			}
 		}
+
+		for (Map.Entry<Node, Message> e : outMessages.entrySet()) {
+			Node sender = e.getKey();
+			Node receiver = sender.getNextNeighbour();
+			Message outMessage = e.getValue();
+
+			// TODO: Check if redundant or not
+			if (receiver.getWakeRound() < currentRound) {
+				this.nextInMessages.put(receiver, outMessage);
+			}
+		}
+
+		this.inMessages = this.nextInMessages;
+
+		this.allTerminated = true;
+		for (Node n : this.allNodes) {
+			if (!n.isTerminated()) {
+				this.allTerminated = false;
+				break;
+			}
+		}
+
+		return this.allTerminated;
+	}
+
+	public boolean getAllTerminated() {
+		return this.allTerminated;
+	}
+
+	public int getLeaderId() {
+		for (Node n : this.allNodes) {
+			if (n.getStatus().equals("leader")) {
+				return n.getId();
+			}
+		}
+
+		return -1;
+	}
+
+	public int getTotalMessage() {
+		return this.totalMessages;
 	}
 }
