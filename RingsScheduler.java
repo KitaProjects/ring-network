@@ -2,7 +2,7 @@ import java.util.*;
 
 public class RingsScheduler {
 	// number of nodes in main ring
-	private final static int NUM_NODES_MAIN = 8;
+	public final static int NUM_NODES_MAIN = 8;
 	// number of interface nodes ⊆ number of nodes in main ring
 	private final static int[] NUM_NODES_INTERFACE = { 7, 5, 9 };
 	// ID generation can be "ascending", "descending" or "random"
@@ -29,7 +29,25 @@ public class RingsScheduler {
 
 	public RingsScheduler() {
 		generateIds();
+		generateNetwork();
 	}
+
+	private int generateWakeRound() {
+		return (int) (Math.random() * MAX_WAKE_ROUND) + 1;
+	}
+
+	private int fetchId(int i) {
+		if (ID_GEN_BEHAVIOUR.equals("descending")) {
+			return this.availableIds.get(availableIds.size() - 1 - i);
+		}
+
+		// random is already shuffled at this point
+		return this.availableIds.get(i);
+	}
+
+	// ############################
+	// # NETWORK GENERATION LOGIC #
+	// ############################
 
 	private void generateIds() {
 		this.subRings = new ArrayList<>();
@@ -50,44 +68,41 @@ public class RingsScheduler {
 			Collections.shuffle(this.availableIds);
 	}
 
-	private int generateWakeRound() {
-		return (int) (Math.random() * MAX_WAKE_ROUND) + 1;
-	}
-
-	private int fetchId(int i) {
-		if (ID_GEN_BEHAVIOUR.equals("descending")) {
-			return this.availableIds.get(availableIds.size() - 1 - i);
-		}
-
-		// random is already sorted at this point
-		return this.availableIds.get(i);
-	}
-
 	private void generateNetwork() {
 		System.out.println("[INFO] Main ring size: " + NUM_NODES_MAIN);
-		System.out.println("[INFO] Sub ring sizes: " + NUM_NODES_INTERFACE);
+		System.out.println("[INFO] Sub ring sizes: " + Arrays.toString(NUM_NODES_INTERFACE));
 		System.out.println("[INFO] Number of interface nodes: " + NUM_NODES_MAIN_INTERFACE);
 		System.out.println("[INFO] Number of non-interface nodes: " + this.totalNonInterfaceNodes);
 		System.out.println("---");
 		System.out.println("[INIT] Generating ring-of-rings network...");
 
-		this.allMainNodes = new ArrayList();
+		this.allMainNodes = new ArrayList<>();
 
 		// sub-rings are spaced out evenly because OCD
 		boolean[] isInterface = new boolean[NUM_NODES_MAIN];
 		if (NUM_NODES_MAIN_INTERFACE > 0) {
+			int step = NUM_NODES_MAIN / NUM_NODES_MAIN_INTERFACE;
 			for (int i = 0; i < NUM_NODES_MAIN_INTERFACE; i++) {
-				isInterface[i * (NUM_NODES_MAIN / NUM_NODES_MAIN_INTERFACE)] = true;
+				int pos = i * step;
+
+				if (pos < NUM_NODES_MAIN) {
+					isInterface[pos] = true;
+				}
+			}
+
+			if (NUM_NODES_MAIN_INTERFACE > 0 && step * (NUM_NODES_MAIN_INTERFACE - 1) >= NUM_NODES_MAIN) {
+				isInterface[NUM_NODES_MAIN - 1] = true;
 			}
 		}
 
 		int iId = 0;
-		for (int i = 0; i < NUM_NODES_MAIN; i++, iId++) {
+		for (int i = 0; i < NUM_NODES_MAIN; i++) {
 			Node n;
 			if (isInterface[i]) {
 				n = new Node(-1, generateWakeRound());
 			} else {
 				n = new Node(fetchId(iId), generateWakeRound());
+				iId++;
 			}
 
 			this.allMainNodes.add(n);
@@ -111,7 +126,76 @@ public class RingsScheduler {
 
 				System.out.println("[DONE] Sub-ring " + iSubRing
 						+ " attatched to interface at position " + i);
+
+				iSubRing++;
 			}
 		}
+
+		for (int i = 0; i < NUM_NODES_MAIN; i++) {
+			Node nNode = allMainNodes.get((i + 1) % NUM_NODES_MAIN);
+			this.allMainNodes.get(i).giveNeighbour(nNode);
+		}
+
+		this.mainRing = new Ring(this.allMainNodes);
+
+		System.out.println("[DONE] Ring of rings network build complete");
+	}
+
+	// ############################
+	// # NETWORK SIMULATION LOGIC #
+	// ############################
+
+	private void simulateLCR() {
+		System.out.println("[WORK] Starting ring-of-rings LCR simulation...");
+
+		int currentRound = 1;
+		this.totalMessages = 0;
+
+		while (!mainRing.getAllTerminated()) {
+			for (Ring subRing : subRings) {
+				if (!subRing.getAllTerminated()) {
+					subRing.processRound(currentRound);
+
+					int leaderId = subRing.getLeaderId();
+					Node iNode = subringInterfaces.get(subRing);
+
+					if (leaderId != -1 && iNode.getId() == -1) {
+						iNode.giveId(leaderId);
+						System.out.println(
+								"[INFO] Round: " + iNode.getId()
+										+ " learned ID from its subring");
+					}
+				}
+			}
+
+			int before = mainRing.getTotalMessages();
+			mainRing.processRound(currentRound);
+			totalMessages += mainRing.getTotalMessages() - before;
+
+			if (currentRound > 1000) {
+				System.out.println("[TIMEOUT] Simulation timed out after 1000 rounds");
+				break;
+			}
+
+			currentRound++;
+		}
+
+		this.totalRounds = currentRound;
+		this.electedLeaderId = mainRing.getLeaderId();
+
+		System.out.println("[DONE] Ring-of-rings LCR simulation complete");
+		System.out.println("\nSUMMARY");
+		System.out.println("---");
+		System.out.println("[INFO] Total messages : " + this.totalMessages);
+		System.out.println("[INFO] Elected leader ID: " + this.electedLeaderId);
+	}
+
+	// ########
+	// # MAIN #
+	// ########
+
+	public static void main(String[] args) {
+		RingsScheduler ringsScheduler = new RingsScheduler();
+		ringsScheduler.simulateLCR();
 	}
 }

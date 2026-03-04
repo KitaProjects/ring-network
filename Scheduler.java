@@ -3,6 +3,7 @@ import java.util.*;
 public class Scheduler {
 	// constants for testing
 	public static final int NUM_NODES_BASIC = 12;
+	// experimenting with this randomness "lever" to make IDs more interesting
 	private final int RAND_VARIANCE_BASIC = 5;
 	private final int MAX_WAKE_ROUNDS_BASIC = 12;
 
@@ -10,18 +11,13 @@ public class Scheduler {
 	private ArrayList<Integer> ids;
 	private ArrayList<Integer> wakeRounds;
 
-	private int currentRound;
+	private Ring ring;
+	private int totalRounds;
+	private int totalMessages;
+	private int electedLeaderId;
 
 	public Scheduler() {
-		this.allNodes = new ArrayList<>();
-		this.ids = new ArrayList<>();
-		this.wakeRounds = new ArrayList<>();
-
 		start();
-
-		this.currentRound = 1;
-
-		simulateLCR();
 	}
 
 	// #############################################
@@ -47,7 +43,7 @@ public class Scheduler {
 				"[WORK] " + MAX_WAKE_ROUNDS_BASIC + " maximum number of wake rounds being assigned...");
 		int randomInt = 0;
 		for (int i = 0; i < NUM_NODES_BASIC; i++) {
-			randomInt = (int) (Math.random() * MAX_WAKE_ROUNDS_BASIC);
+			randomInt = (int) (Math.random() * MAX_WAKE_ROUNDS_BASIC) + 1;
 			this.wakeRounds.add(randomInt);
 		}
 	}
@@ -80,6 +76,10 @@ public class Scheduler {
 	}
 
 	public void start() {
+		this.allNodes = new ArrayList<>();
+		this.ids = new ArrayList<>();
+		this.wakeRounds = new ArrayList<>();
+
 		System.out.println("[INIT] Generating ring network");
 
 		generateIds();
@@ -92,22 +92,53 @@ public class Scheduler {
 		// printRing();
 	}
 
-	// #############################################
-	// #=========MESSAGE GENERATION LOGIC==========#
-	// #############################################
+	// ####################
+	// # SIMULATION LOGIC #
+	// ####################
 
 	public void simulateLCR() {
-		System.out.println("[WORK] Simulating generated ring network...");
+		System.out.println("[WORK] Simulating basic ring network...");
 
-		// summary
+		this.ring = new Ring(this.allNodes);
+
+		int currentRound = 1;
+		this.totalMessages = 0;
+
+		while (!ring.getAllTerminated()) {
+			int before = ring.getTotalMessages();
+			boolean terminated = ring.processRound(currentRound);
+			this.totalMessages += ring.getTotalMessages() - before;
+
+			if (terminated) {
+				System.out.println("[INFO] All nodes terminated at round " + currentRound);
+				break;
+			}
+
+			if (currentRound > 1000) {
+				System.out.println("[TIMEOUT] Simlution timed out after 1000 rounds");
+				break;
+			}
+
+			currentRound++;
+		}
+
+		this.totalRounds = currentRound;
+		this.electedLeaderId = ring.getLeaderId();
+
 		System.out.println("[DONE] Simulation finished!");
 		System.out.println("\nSUMMARY");
 		System.out.println("-------");
+		System.out.println("[INFO] Total rounds: " + this.totalRounds);
+		System.out.println("[INFO] Total messages: " + this.totalMessages);
+		System.out.println("[INFO] Elected leader ID: " + this.electedLeaderId);
 	}
 
-	// #############################################
+	// ########
+	// # MAIN #
+	// ########
 
 	public static void main(String[] args) {
 		Scheduler scheduler = new Scheduler();
+		scheduler.simulateLCR();
 	}
 }

@@ -15,7 +15,7 @@ public class Ring {
 		this.allTerminated = false;
 
 		// setup neighbours clockwise
-		for (int i = 0; i < Scheduler.NUM_NODES; i++) {
+		for (int i = 0; i < nodes.size(); i++) {
 			Node nextNode = nodes.get((i + 1) % nodes.size());
 
 			nodes.get(i).giveNeighbour(nextNode);
@@ -31,7 +31,7 @@ public class Ring {
 	}
 
 	public boolean processRound(int currentRound) {
-		Map<Node, Message> outMessages = new HashMap();
+		Map<Node, Message> outMessages = new HashMap<>();
 
 		if (this.allTerminated) {
 			return true;
@@ -70,7 +70,9 @@ public class Ring {
 			}
 		}
 
+		Map<Node, Message> before = this.inMessages;
 		this.inMessages = this.nextInMessages;
+		this.nextInMessages = before;
 
 		this.allTerminated = true;
 		for (Node n : this.allNodes) {
@@ -97,7 +99,7 @@ public class Ring {
 		return -1;
 	}
 
-	public int getTotalMessage() {
+	public int getTotalMessages() {
 		return this.totalMessages;
 	}
 }

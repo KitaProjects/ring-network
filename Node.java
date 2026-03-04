@@ -45,30 +45,41 @@ public class Node {
 	}
 
 	public Message processMessage(int round, Message message) {
-		if (message == null)
-			return new Message(sendId, false);
+		if (terminate)
+			return null;
 
-		// if my ID has made it back to me I must be the leader
-		if (message.content == this.myId) {
-			this.status = "leader";
-			this.terminate = true;
-			return new Message(this.myId, true);
+		if (myId == -1)
+			return null;
+
+		if (message != null) {
+			// if my ID has made it back to me I must be the leader
+			if (message.content == this.myId) {
+				this.status = "leader";
+				this.terminate = true;
+				return new Message(this.myId, true);
+			}
+
+			// if someone is elected who is not me, I must be a follower
+			if (message.elected) {
+				this.status = "follower";
+				this.terminate = true;
+				return new Message(message.content, true);
+			}
+
+			// bigger ID so send
+			if (message.content > this.sendId) {
+				this.sendId = message.content;
+				return new Message(this.sendId, false);
+			}
+
+			return null;
 		}
 
-		// if someone is elected who is not me, I must be a follower
-		if (message.elected) {
-			this.status = "follower";
-			this.terminate = true;
-			return new Message(message.content, true);
-		}
-
-		// bigger ID so send
-		if (message.content > this.sendId) {
-			this.sendId = message.content;
+		// no incoming message but send ID if it's the wake round
+		if (round == this.wakeRound) {
 			return new Message(this.sendId, false);
 		}
 
-		// smaller ID so do nothing
 		return null;
 	}
 }
