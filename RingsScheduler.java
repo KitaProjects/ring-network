@@ -5,9 +5,9 @@ public class RingsScheduler {
 	public final static int NUM_NODES_MAIN = 8;
 	// number of interface nodes ⊆ number of nodes in main ring
 	private final static int[] NUM_NODES_INTERFACE = { 7, 5, 9 };
-	// ID generation can be "ascending", "descending" or "random"
-	private final static int NUM_NODES_MAIN_INTERFACE = NUM_NODES_INTERFACE.length;
 	// number of nodes possible within subrings
+	private final static int NUM_NODES_MAIN_INTERFACE = NUM_NODES_INTERFACE.length;
+	// ID generation can be "ascending", "descending" or "random"
 	private final static String ID_GEN_BEHAVIOUR = "ascending";
 	// the latest a node can wake up
 	private final static int MAX_WAKE_ROUND = 12;
@@ -73,7 +73,6 @@ public class RingsScheduler {
 		System.out.println("[INFO] Sub ring sizes: " + Arrays.toString(NUM_NODES_INTERFACE));
 		System.out.println("[INFO] Number of interface nodes: " + NUM_NODES_MAIN_INTERFACE);
 		System.out.println("[INFO] Number of non-interface nodes: " + this.totalNonInterfaceNodes);
-		System.out.println("---");
 		System.out.println("[INIT] Generating ring-of-rings network...");
 
 		this.allMainNodes = new ArrayList<>();
@@ -151,32 +150,52 @@ public class RingsScheduler {
 		int currentRound = 1;
 		this.totalMessages = 0;
 
-		while (!mainRing.getAllTerminated()) {
+		while (true) {
 			for (Ring subRing : subRings) {
 				if (!subRing.getAllTerminated()) {
 					subRing.processRound(currentRound);
-
-					int leaderId = subRing.getLeaderId();
-					Node iNode = subringInterfaces.get(subRing);
-
-					if (leaderId != -1 && iNode.getId() == -1) {
-						iNode.giveId(leaderId);
-						System.out.println(
-								"[INFO] Round: " + iNode.getId()
-										+ " learned ID from its subring");
-					}
 				}
+
+				int leaderId = subRing.getLeaderId();
+				Node iNode = subringInterfaces.get(subRing);
+
+				if (leaderId != -1 && iNode.getId() == -1) {
+					iNode.giveId(leaderId);
+					iNode.giveWakeRound(currentRound);
+					System.out.println("[INFO] " + iNode.getId()
+							+ " learned ID from its subring");
+				}
+
 			}
 
-			int before = mainRing.getTotalMessages();
-			mainRing.processRound(currentRound);
-			totalMessages += mainRing.getTotalMessages() - before;
+			boolean allSubRingsDone = true;
+			for (Ring subRing : subRings) {
+				if (!subRing.getAllTerminated()) {
+					allSubRingsDone = false;
+					break;
+				}
+			}
+			if (allSubRingsDone)
+				break;
 
 			if (currentRound > 1000) {
 				System.out.println("[TIMEOUT] Simulation timed out after 1000 rounds");
 				break;
 			}
+			currentRound++;
+		}
 
+		System.out.println("[INFO] All subrings terminated round: " + currentRound);
+
+		while (!mainRing.getAllTerminated()) {
+			int before = mainRing.getTotalMessages();
+			mainRing.processRound(currentRound);
+			totalMessages += mainRing.getTotalMessages() - before;
+
+			if (currentRound > 2000) {
+				System.out.println("[TIMEOUT] Main ring timed out after 2000 rounds");
+				break;
+			}
 			currentRound++;
 		}
 
@@ -185,8 +204,9 @@ public class RingsScheduler {
 
 		System.out.println("[DONE] Ring-of-rings LCR simulation complete");
 		System.out.println("\nSUMMARY");
-		System.out.println("---");
+		System.out.println("-------");
 		System.out.println("[INFO] Total messages : " + this.totalMessages);
+		System.out.println("[INFO] Total rounds: " + this.totalRounds);
 		System.out.println("[INFO] Elected leader ID: " + this.electedLeaderId);
 	}
 

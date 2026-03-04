@@ -32,6 +32,10 @@ public class Node {
 		return this.nextNeighbour;
 	}
 
+	public void giveWakeRound(int round) {
+		this.wakeRound = round;
+	}
+
 	public int getWakeRound() {
 		return this.wakeRound;
 	}
@@ -76,7 +80,7 @@ public class Node {
 		}
 
 		// no incoming message but send ID if it's the wake round
-		if (round == this.wakeRound) {
+		if (round >= this.wakeRound) {
 			return new Message(this.sendId, false);
 		}
 
