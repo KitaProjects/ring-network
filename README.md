@@ -1,3 +1,6 @@
+*You may want to take a look at my GitHub Repository page
+[here](https://github.com/KitaProjects/ring-network/tree/main)*
+
 # LCR algorithm assignment
 
 In the terminal (assuming Java SDK is installed):
