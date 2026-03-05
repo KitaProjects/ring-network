@@ -2,9 +2,9 @@ import java.util.*;
 
 public class RingsScheduler {
 	// number of nodes in main ring
-	public final static int NUM_NODES_MAIN = 8;
+	public final static int NUM_NODES_MAIN = 5;
 	// number of interface nodes ⊆ number of nodes in main ring
-	private final static int[] NUM_NODES_INTERFACE = { 7, 5, 9 };
+	private final static int[] NUM_NODES_INTERFACE = { 5, 5, 5 };
 	// number of nodes possible within subrings
 	private final static int NUM_NODES_MAIN_INTERFACE = NUM_NODES_INTERFACE.length;
 	// ID generation can be "ascending", "descending" or "random"
@@ -153,7 +153,9 @@ public class RingsScheduler {
 		while (true) {
 			for (Ring subRing : subRings) {
 				if (!subRing.getAllTerminated()) {
+					int before = subRing.getTotalMessages();
 					subRing.processRound(currentRound);
+					totalMessages += subRing.getTotalMessages() - before;
 				}
 
 				int leaderId = subRing.getLeaderId();
@@ -205,8 +207,8 @@ public class RingsScheduler {
 		System.out.println("[DONE] Ring-of-rings LCR simulation complete");
 		System.out.println("\nSUMMARY");
 		System.out.println("-------");
-		System.out.println("[INFO] Total messages : " + this.totalMessages);
 		System.out.println("[INFO] Total rounds: " + this.totalRounds);
+		System.out.println("[INFO] Total messages : " + this.totalMessages);
 		System.out.println("[INFO] Elected leader ID: " + this.electedLeaderId);
 	}
 
