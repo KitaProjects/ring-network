@@ -1,10 +1,11 @@
 import java.util.*;
 
 public class Scheduler {
-	// constants for testing
+	// the number of nodes to put in basic ring network
 	public static final int NUM_NODES_BASIC = 12;
-	// experimenting with this randomness "lever" to make IDs more interesting
+	// randomness "lever" to make IDs more interesting
 	private final int RAND_VARIANCE_BASIC = 5;
+	// I didn't really mess around with this but you can do so if you wish
 	private final int MAX_WAKE_ROUNDS_BASIC = 12;
 
 	private List<Node> allNodes;
